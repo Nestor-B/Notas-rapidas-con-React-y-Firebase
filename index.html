@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <title>React Tareas</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+    <script src="./lib/react.development.js"></script>
+    <script src="./lib/react-dom.development.js"></script>
+    <script src="./lib/babel.min.js"></script>
+    <div id="app"></div>
+
+    <script type="text/babel">
+        function Header({activarModal}){
+            function signOut(){
+                location = "signout.html"
+            }
+            return <header className="p-2 mt-2 d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                    <h3>Notas rapidas</h3>
+                    <div className="mx-3 container-button-add border" onClick={activarModal}>
+                        <button title="Crear nota" className="btn text-primary border-0"> <i className="bi bi-plus-lg"></i> </button>
+                    </div>
+                </div>    
+                <div className="container-options-user">
+                    <button className="btn"> <i className="bi bi-suit-heart"></i> </button>
+                    <button className="btn"> <i className="bi bi-gear"></i> </button>
+                    <button className="btn" onClick={signOut}> <i className="bi bi-box-arrow-right"></i> </button>
+                </div>
+            </header>
+        }
+        function FormNotas({onBuscar}){
+            return <form className="my-4 p-4">
+                <div className="input-group d-flex align-items-center border bg-white">
+                    <input type="text" className="form-control border-0" placeholder="Buscar ..." onChange={onBuscar} />
+                    <span className="input-group-text bg-white border-0" id="basic-addon2">
+                        <i className="bi bi-search"></i>
+                    </span>
+                </div>
+            </form>
+        }
+
+        function Total({total}){
+            return <div className="d-flex justify-content-between">
+                <div className="p-3 py-1 btn position-relative">
+                        Notas
+                        <span className="position-absolute text-white top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                        {total}
+                    </span>
+                </div>
+            </div>
+        }
+        
+        function ModalAddNotas({activarModal, borrador, guardarBorrador, detalle, typing}, props){
+            const [showPlaceholder, setShowPlaceholder] = React.useState(true)
+            var contentEdit = React.useRef(contentEdit)
+            React.useEffect(function(){
+                if( text_modificar.length == 0 ){
+                    guardarBorrador(contentEdit.current.innerHTML)
+                }
+            })
+            function setPlaceh(){
+                setShowPlaceholder(false)
+            }
+            function Command(c, u=false, v=null){
+                contentEdit.current.focus()
+                setShowPlaceholder(false)
+                if(v){
+                    document.execCommand(c, u, v)
+                }
+            }
+
+            // Mejorar
+            function imagen(e){
+                let File=new FileReader();
+                File.onload=function(e){
+                    let obj = e.target.result
+                    Command('insertHTML', false, "<img src='"+obj+"' />")                    
+                };
+                File.readAsDataURL(e.target.files[0]);
+            }
+            return <div className="popup">
+                <div className="container-contentedit-nota position-relative">
+                    <header className="bg-light d-flex justify-content-between">
+                        <div className="container-button-add d-flex align-items-center justify-content-center">
+                            {typing?<i className="bi bi-arrow-repeat rotar btn"></i>:''}
+                        </div>    
+                        <div className="container-options-user">
+
+                            {
+                                borrador.length>0?<button className="btn px-3" onClick={activarModal.bind(this, text_modificar==""?0:1)}> <i className="bi bi-check2-square text-success"></i> </button>:<button className="btn px-3" onClick={activarModal.bind(this, 0)}> <i className="bi bi-x-lg text-danger"></i> </button>
+                            }
+                            
+                        </div>
+                    </header>
+
+                    {
+                        text_modificar==""?<div ref={contentEdit} className="contentedit p-3" 
+                                contentEditable={true} onClick={setPlaceh} onPaste={()=>{guardarBorrador(event.target.innerHTML)}} onKeyUp={()=>{guardarBorrador(event.target.innerHTML)}} onMouseOver={()=>{guardarBorrador(event.target.innerHTML)}} suppressContentEditableWarning={true}></div>:<div className="contentedit p-3" 
+                                contentEditable={true} onClick={setPlaceh} onPaste={()=>{guardarBorrador(event.target.innerHTML)}} onKeyUp={()=>{guardarBorrador(event.target.innerHTML)}} onMouseOver={()=>{guardarBorrador(event.target.innerHTML)}} suppressContentEditableWarning={true} dangerouslySetInnerHTML={{ __html: text_modificar}}></div>
+                    }
+                    
+                    
+                    {
+                        showPlaceholder && text_modificar == ""?<span onClick={setPlaceh} className="placeholder">{`escribe aqui`}</span>:''
+                    }
+
+                    <footer className="bg-light d-flex justify-content-around py-2">
+                        <button className="btn" onClick={()=>{Command('insertHTML', false, '<h1>Escribe tu encabezado</h1>')}}> <i className="bi bi-type-h1"></i> </button>
+                        <button className="btn" onClick={()=>{document.execCommand('bold', false, null)}}> <i className="bi bi-type-bold"></i> </button>
+                        <button className="btn" onClick={()=>{document.execCommand('italic', false, null)}}> <i className="bi bi-type-italic"></i> </button>
+                        <button className="btn" onClick={()=>{document.execCommand('underline', false, null)}}> <i className="bi bi-type-underline"></i> </button>
+                        <button className="btn" onClick={()=>{document.execCommand('strikethrough', false, null)}}> <i className="bi bi-type-strikethrough"></i> </button>
+                        <button className="btn" onClick={()=>{Command('insertImage', false, prompt('URL de imagen?'))}}> <i className="bi bi-image"></i> </button>
+                        <div className="position-relative">
+                            <input type="file" className="btn bg-primary" onChange={imagen} />    
+                            <i className="bi bi-upload"></i>
+                        </div>
+                        <button className="btn" onClick={()=>{Command('insertOrderedList', false, "")}}> <i className="bi bi-list-ul"></i> </button>
+                    </footer>
+                </div>
+            </div>
+        }
+
+        function Opcionescolor({show, cc, idx, del}){
+            const [colors, setColors] = React.useState(['rgba(255, 255, 0,.2)','rgba(255, 0, 0,.2)','rgba(0, 255, 0,.2)','rgba(247, 191, 190,.2)','rgba(174, 214, 241,.2)','rgba(86, 101, 115,.2)', 'rgba(255, 255, 255,.6)', 'rgba(215, 189, 226,.6)', 'rgba( 230, 126, 34,.3)', 'linear-gradient(lightblue,rgba(139,0,0,.3))'])
+
+            return <div className="Opcionescolor d-flex flex-column justify-content-between" >
+                <div className="d-flex justify-content-between bg-light align-items-center">
+                    <h5 className="p-3">Cambiar color de fondo</h5>
+                    <div className="d-flex justify-content-between">
+                        <div className="p-3 bi bi-x-lg" onClick={show}></div>
+                    </div>
+                </div>
+                <div className="grid p-3">
+                    {colors.map((e, index)=>{
+                        return <div key={index} className="p-3 btn-color-selection" onClick={cc.bind(this, e)} style={{background: e}}></div>
+                    })}
+                    
+                </div>
+                <div className="p-3">
+                    <h6 onClick={del.bind(this, idx)} className="btn"> <i className="bi bi-trash"></i> <b>Eliminar nota</b> </h6>
+                </div>
+            </div>
+        }
+
+        var text_modificar=""
+        var indexEdit=null
+        function MisNotas({indice, title, fecha, idx, background, del, activarModal, guardarBorrador, CambiarBackground}){
+            const [options, setOptions] = React.useState(false)
+            const [optionsColors, setOptionsColors] = React.useState(false)
+            const [color, setColor] = React.useState('rgba(255, 255, 0,.5)')
+
+            var linkdown = React.useRef(linkdown)
+
+            React.useEffect(function(){
+                // linkdown.current.href 
+                linkdown.current.setAttribute("download", "nota_"+idx+".html")
+                linkdown.current.href = URL.createObjectURL(new Blob(["<div style='max-width:100%;padding:2em;'><style>img{max-width:100%;}</style>"+title+"</div>"], {type : 'text/html'} ))
+            })
+            
+            function printe(e) {
+                if( confirm('Desea abrir una nueva ventana?') ){
+                    var myWindow = window.open("", "left="+(innerWidth/2-200)+", top=100,width=500,height=400")
+                    myWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>Nota: `+idx+`</title>
+                                <link rel="stylesheet" type="text/css" href="css/main.css" />
+                            </head>
+                            <body style='padding: 2em;'>`)
+                    myWindow.document.write(e)
+                    myWindow.document.write(`
+                                <button>Click</button>
+                            </body>
+                        </html>`)
+                    if(myWindow.confirm('Desea imprimir?')) {
+                        myWindow.print()
+                    }
+                }
+            }
+
+            function showOptions(){
+                setOptions(true)
+            }
+            function hiddeOptions(){
+                setOptions(false)
+            }
+            function toggleOptionsColor(){
+                setOptionsColors( !optionsColors )
+            }
+            function CambiarColor(e = ''){
+                setColor(e)
+                toggleOptionsColor()
+                CambiarBackground(indice, e)
+            }
+
+            function edit(){
+                text_modificar = title
+                indexEdit = indice
+                activarModal()
+            }
+
+            return <div onMouseOver={()=>{showOptions()}} onMouseEnter={()=>{showOptions()}} onMouseLeave={()=>{hiddeOptions()}} className="container-notas mt-3 border" style={{background: background}}>
+                <article>
+                    {optionsColors? <Opcionescolor cc={CambiarColor} idx={idx} del={(e)=>{del(e);setOptionsColors(false)}} CambiarBackground={CambiarBackground} show={toggleOptionsColor} /> :''}
+                    <header className="p-3">
+                        <div>
+                            <span onClick={()=>{printe(title)}}>
+                                <i className="bi bi-printer btn"></i>    
+                            </span>
+                            <span>
+                                <a ref={linkdown} className="text-decoration-none"> <i className="bi bi-cloud-download btn"></i> </a>    
+                            </span>
+                        </div>
+                        {
+                            options?(<span><i className="p-3 bi bi-pencil" onClick={edit}></i> <i className="btn bi bi-three-dots" onClick={toggleOptionsColor}></i></span>):<small className="btn">{fecha}</small>
+                        }                        
+                    </header>
+                    <main className="p-4 pt-0 mx-0" dangerouslySetInnerHTML={{ __html: title}} >
+                        
+                    </main>
+                </article>
+            </div>
+        }
+
+        function App() {
+            if( !sessionStorage.getItem('ses') ){
+                location = "login.html"
+            }
+
+            const [notas, setAddNotas] = React.useState([])
+            const [inputbuscar, setbuscar] = React.useState('')
+            const [nuevaNota, setNuevaNota] = React.useState('')
+            const [detalle, setdetalle] = React.useState('')
+            const [modal, setModal] = React.useState(false)
+            const [OpsColor, setOpsColor] = React.useState(false)
+            const [updateNuevaNota, setUpdateNota] = React.useState(false)
+            const [preload, sepreload] = React.useState('Cargando ')
+            const [typing, setyping] = React.useState(false)
+
+            React.useEffect(function(){
+                setTimeout(()=>{
+                    sepreload('')
+                }, 1100)
+                actset=setTimeout(()=>{
+                    setyping(false)
+                    actyping = false                    
+                }, 600)
+            })
+
+            var actyping = false
+            var actset;
+
+            function ObservarMutacion(elem){
+                var m=new MutationObserver((e)=>{
+                    clearTimeout(actset)
+                    actyping = true
+                    setyping(true)                    
+                })
+                document.querySelectorAll(elem).forEach((e)=>{
+                    m.observe(e, {
+                        attributes: true,
+                        childList: true,
+                        subtree: true,
+                        characterDataOldValue: true
+                    })
+                })
+            }
+            ObservarMutacion(".contentedit",)            
+
+            document.addEventListener('keyup', (e)=>{
+                if(e.keyCode === 27) {
+                    activarModal()
+                }
+            })
+
+            function activarModal(e = null){
+                                
+                if(e == 0 && nuevaNota){
+                    //Guardar              
+                    if( confirm('¿Desea guardar la tarea?') ){
+                        text_modificar = ""
+                        setAddNotas(function(oldV){
+                            return [...oldV, {id: Date.now(), title: nuevaNota, fecha: (new Date()).toLocaleString(), background: 'white' }]
+                        })
+                    }
+                }
+                
+                if(e == 1 && nuevaNota){
+                    // Modificar
+                    if( confirm('¿Deseas modificar la nota?') ){
+                        let nota = [...notas]
+                        nota[indexEdit].title = nuevaNota
+                        setAddNotas(nota)  
+                        text_modificar = ""
+                        indexEdit = null
+                    }
+                }
+                setNuevaNota('')
+                setModal( !modal ) 
+            }
+
+            function eliminar(id){
+                // Eliminar
+                if( confirm('¿Deseas eliminar la nota?') ){
+                    const item = notas.filter( (e,i)=>id!==e.id )
+                    setAddNotas(item)
+                }
+            }
+
+            function CambiarBackground(id, color){
+                // Cambiar color
+                let nota = [...notas]
+                nota[id].background = color
+                setAddNotas(nota) 
+            }
+
+            function buscar(){
+                // Buscar
+                var text = event.target.value
+                setbuscar(text)
+            }
+
+            return preload?<div className="min-vh-100 d-flex align-items-center justify-content-center"><i className="bi text-primary rotar btn bi-x-diamond-fill"></i></div>: <section className="container">
+                
+                <Header activarModal={activarModal} />
+
+                <FormNotas onBuscar={buscar} /> 
+                
+                <Total total={notas.length} />
+
+                {modal?
+                    <ModalAddNotas detalle={setdetalle} activarModal={activarModal} borrador={nuevaNota} typing={typing} guardarBorrador={setNuevaNota} />:''}
+                
+                {notas.sort((a,z)=>z.id-a.id).filter(e => e.title.replace( /(<([^>]+)>)/ig, '').includes(inputbuscar)).map((e, index)=>{
+                    return <MisNotas guardarBorrador={setNuevaNota} activarModal={activarModal} CambiarBackground={CambiarBackground} idx={e.id} del={eliminar} indice={index} key={index} {...e} />
+                })}    
+
+                <footer className="p-5">Pie de pagina</footer>
+            </section>
+        }
+
+        ReactDOM.render(<App />, document.getElementById('app'))
+    </script>
+
+</body>
+</html>
